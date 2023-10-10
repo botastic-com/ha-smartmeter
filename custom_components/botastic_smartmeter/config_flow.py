@@ -17,7 +17,7 @@ from .const import DOMAIN, LOGGER
 
 
 class BlueprintFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for Blueprint."""
+    """Config flow for Botastic Smartmeter."""
 
     VERSION = 1
 

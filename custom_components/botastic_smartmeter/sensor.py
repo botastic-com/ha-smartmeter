@@ -10,7 +10,7 @@ from .entity import IntegrationBlueprintEntity
 ENTITY_DESCRIPTIONS = (
     SensorEntityDescription(
         key="integration_blueprint",
-        name="Integration Sensor",
+        name="Botastic Smartmeter",
         icon="mdi:format-quote-close",
     ),
 )

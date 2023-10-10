@@ -1,0 +1,15 @@
+{
+  "domain": "botastic_smartmeter",
+  "name": "botastic smartmeter",
+  "codeowners": [
+    "@botastic-com"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/botastic-com/ha-smartmeter",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/botastic-com/ha-smartmeter/issues",
+  "version": "1.0.0",
+  "requirements": [
+    "pyserial-asyncio==0.6"
+  ]
+}
