@@ -9,9 +9,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .api import IntegrationBlueprintApiClient
-from .const import DOMAIN
-from .coordinator import BlueprintDataUpdateCoordinator
+from .api import BotasticSmartmeterApi
+from .const import *
+from .coordinator import BotasticSmartmeterDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [Platform.SENSOR]
 
@@ -20,8 +20,21 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
+    api = BotasticSmartmeterApi(
+        hass,
+        entry.data[CONF_SERIAL_PORT],
+        entry.data[CONF_MBUS_KEY],
+    )
+    coordinator = BotasticSmartmeterDataUpdateCoordinator(
+        hass=hass,
+        api=api,
+    )
+    hass.data[DOMAIN][entry.entry_id] = coordinator
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
+    await coordinator.async_config_entry_first_refresh()
+
+    await hass.config_entries.async_forward_entry_setup(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True

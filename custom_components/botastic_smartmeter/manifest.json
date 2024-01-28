@@ -10,6 +10,9 @@
   "issue_tracker": "https://github.com/botastic-com/ha-smartmeter/issues",
   "version": "1.0.0",
   "requirements": [
-    "pyserial-asyncio==0.6"
+    "pyserial-asyncio==0.6",
+    "gurux-dlms==1.0.145",
+    "pycryptodome==3.19.0",
+    "pycryptodomex==3.19.0"
   ]
 }
