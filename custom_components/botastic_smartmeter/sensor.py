@@ -1,14 +1,10 @@
 """Sensor platform for Botastic Smartmeter."""
-from __future__ import annotations
 
-from collections.abc import Callable
-from dataclasses import dataclass
-from datetime import datetime
+from __future__ import annotations
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
-    SensorEntityDescription,
     SensorStateClass,
 )
 
@@ -20,114 +16,110 @@ from homeassistant.const import (
     UnitOfPower,
 )
 
-from .const import DOMAIN
-from .coordinator import BotasticSmartmeterDataUpdateCoordinator
-from .entity import BotasticSmartmeterEntity
-
-
-@dataclass(frozen=True)
-class BotasticSmartmeterSensorEntityDescription(SensorEntityDescription):
-    """Describes the botastic sensor entity."""
-
-    value: Callable[[float | int], float] | Callable[[datetime], datetime] | None = None
-
+import botastic_smartmeter.coordinator
+from .const import DOMAIN, LOGGER
+from .entity import BotasticSmartmeterEntity, BotasticSmartmeterSensorEntityDescription
 
 ENTITY_DESCRIPTIONS = (
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_voltage_1",
-        translation_key="smartmeter_voltage_1",
+        key="voltage_1",
+        octet="0100200700FF",
+        conversion_factor=0.1,
         icon="mdi:lightning-bolt",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_current_1",
-        translation_key="smartmeter_current_1",
+        key="current_1",
+        octet="01001F0700FF",
+        conversion_factor=0.01,
         icon="mdi:lightning-bolt-outline",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_voltage_2",
-        translation_key="smartmeter_voltage_2",
+        key="voltage_2",
+        octet="0100340700FF",
+        conversion_factor=0.1,
         icon="mdi:lightning-bolt",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_current_2",
-        translation_key="smartmeter_current_2",
+        key="current_2",
+        octet="0100330700FF",
+        conversion_factor=0.01,
         icon="mdi:lightning-bolt-outline",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_voltage_3",
-        translation_key="smartmeter_voltage_3",
+        key="voltage_3",
+        octet="0100480700FF",
+        conversion_factor=0.1,
         icon="mdi:lightning-bolt",
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_current_3",
-        translation_key="smartmeter_current_3",
+        key="current_3",
+        octet="0100470700FF",
+        conversion_factor=0.01,
         icon="mdi:lightning-bolt-outline",
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
-        entity_registry_enabled_default=False,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_import_power",
-        translation_key="smartmeter_import_power",
+        key="power_import",
+        octet="0100010700FF",
         icon="mdi:flash",
+        conversion_factor=1.0,
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_export_power",
-        translation_key="smartmeter_export_power",
+        key="power_export",
+        octet="0100020700FF",
+        conversion_factor=1.0,
         icon="mdi:flash-outline",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_import_energy",
-        translation_key="smartmeter_import_energy",
+        key="energy_import",
+        octet="0100010800FF",
+        conversion_factor=0.001,
         icon="mdi:home-lightning-bolt",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_export_energy",
-        translation_key="smartmeter_export_energy",
+        key="energy_export",
+        octet="0100020800FF",
+        conversion_factor=0.001,
         icon="mdi:home-lightning-bolt-outline",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
     BotasticSmartmeterSensorEntityDescription(
-        key="smartmeter_power_factor",
-        translation_key="smartmeter_power_factor",
+        key="power_factor",
+        octet="01000D0700FF",
+        conversion_factor=0.001,
         icon="mdi:angle-acute",
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.POWER_FACTOR,
         value=lambda value: value * 100,
-        entity_registry_enabled_default=False,
     ),
 )
 
@@ -135,28 +127,34 @@ ENTITY_DESCRIPTIONS = (
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities(
-        BotasticSmartmeterSensor(
-            coordinator=coordinator,
-            entity_description=entity_description,
+    entities_to_add: list[SensorEntity] = []
+    for entity_description in ENTITY_DESCRIPTIONS:
+        entities_to_add.append(
+            BotasticSmartmeterSensor(coordinator, entity_description)
         )
-        for entity_description in ENTITY_DESCRIPTIONS
-    )
+    async_add_entities(entities_to_add, False)
 
 
 class BotasticSmartmeterSensor(BotasticSmartmeterEntity, SensorEntity):
     """botastic_smartmeter sensor class."""
 
+    _attr_should_poll = False
+
     def __init__(
         self,
-        coordinator: BotasticSmartmeterDataUpdateCoordinator,
+        coordinator: botastic_smartmeter.BotasticSmartmeterDataUpdateCoordinator,
         entity_description: BotasticSmartmeterSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(coordinator)
+        super().__init__(coordinator, entity_description)
         self.entity_description = entity_description
+        LOGGER.info("Added entity %s", self.entity_description.key)
 
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
-        return self.coordinator.data.get("body")
+        values = self.coordinator.data
+        value = values.get(self.translation_key)
+        if self.entity_description.value:
+            return self.entity_description.value(value)
+        return value

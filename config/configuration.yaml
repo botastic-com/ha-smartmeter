@@ -6,3 +6,11 @@ logger:
   default: info
   logs:
     custom_components.botastic_smartmeter: debug
+
+ffmpeg:
+  ffmpeg_bin: /bin/true
+
+# Enable VSCode debugging
+# debugpy:
+#   start: true
+#   wait: true

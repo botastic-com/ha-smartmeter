@@ -1,54 +1,62 @@
 {
     "config": {
+        "abort": {
+            "already_configured": "The device is already configured"
+        },
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/botastic-com/ha-smartmeter",
                 "data": {
-                    "username": "Username",
-                    "password": "Password"
-                }
+                    "serial_port": "Choose a USB device",
+                    "mbus_key": "Enter the MBUS decryption key"
+                },
+                "title": "Serial Device"
+            },
+            "setup_serial_manual": {
+                "data": {
+                    "serial_port": "Path of USB device"
+                },
+                "title": "Serial Device Path"
             }
         },
         "error": {
-            "auth": "Username/Password is wrong.",
             "connection": "Unable to connect to the server.",
             "unknown": "Unknown error occurred."
         }
     },
     "entity": {
         "sensor": {
-            "smartmeter_voltage_1": {
-                "name": "Smartmeter Voltage L1"
+            "voltage_1": {
+                "name": "Voltage L1"
             },
-            "smartmeter_current_1": {
-                "name": "Smartmeter Current L1"
+            "current_1": {
+                "name": "Current L1"
             },
-            "smartmeter_voltage_2": {
-                "name": "Smartmeter Voltage L2"
+            "voltage_2": {
+                "name": "Voltage L2"
             },
-            "smartmeter_current_2": {
-                "name": "Smartmeter Current L2"
+            "current_2": {
+                "name": "Current L2"
             },
-            "smartmeter_voltage_3": {
-                "name": "Smartmeter Voltage L3"
+            "voltage_3": {
+                "name": "Voltage L3"
             },
-            "smartmeter_current_3": {
-                "name": "Smartmeter Current L3"
+            "current_3": {
+                "name": "Current L3"
             },
-            "smartmeter_import_power": {
-                "name": "Smartmeter Import Power"
+            "power_import": {
+                "name": "Power Import"
             },
-            "smartmeter_export_power": {
-                "name": "Smartmeter Export Power"
+            "power_export": {
+                "name": "Power Export"
             },
-            "smartmeter_import_energy": {
-                "name": "Smartmeter Imported Energy"
+            "energy_import": {
+                "name": "Energy Import"
             },
-            "smartmeter_export_energy": {
-                "name": "Smartmeter Exported Energy"
+            "energy_export": {
+                "name": "Energy Export"
             },
-            "smartmeter_power_factor": {
-                "name": "Smartmeter Power Factor"
+            "power_factor": {
+                "name": "Power Factor"
             }
         }
     }

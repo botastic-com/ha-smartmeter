@@ -1,7 +1,6 @@
 """DataUpdateCoordinator for botastic_smartmeter."""
-from __future__ import annotations
 
-from datetime import timedelta
+from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -10,10 +9,7 @@ from homeassistant.helpers.update_coordinator import (
     UpdateFailed,
 )
 
-from .api import (
-    BotasticSmartmeterApi,
-    BotasticSmartmeterApiError,
-)
+import botastic_smartmeter.api
 from .const import DOMAIN, LOGGER
 
 
@@ -26,7 +22,7 @@ class BotasticSmartmeterDataUpdateCoordinator(DataUpdateCoordinator):
     def __init__(
         self,
         hass: HomeAssistant,
-        api: BotasticSmartmeterApi,
+        api: botastic_smartmeter.api.BotasticSmartmeterApi,
     ) -> None:
         """Initialize."""
         self._api = api
@@ -34,12 +30,12 @@ class BotasticSmartmeterDataUpdateCoordinator(DataUpdateCoordinator):
             hass=hass,
             logger=LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(seconds=1),
+            # update_interval=timedelta(seconds=1),
         )
 
     async def _async_update_data(self):
         """Update data via library."""
         try:
             return await self._api.async_get_data()
-        except BotasticSmartmeterApiError as exception:
+        except botastic_smartmeter.api.BotasticSmartmeterApiError as exception:
             raise UpdateFailed(exception) from exception

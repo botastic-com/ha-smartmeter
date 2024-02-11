@@ -3,13 +3,14 @@
 For more details about this integration, please refer to
 https://github.com/botastic-com/ha-smartmeter
 """
+
 from __future__ import annotations
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 
-from .api import BotasticSmartmeterApi
+import botastic_smartmeter.api
 from .const import *
 from .coordinator import BotasticSmartmeterDataUpdateCoordinator
 
@@ -20,7 +21,7 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
-    api = BotasticSmartmeterApi(
+    api = botastic_smartmeter.api.BotasticSmartmeterApi(
         hass,
         entry.data[CONF_SERIAL_PORT],
         entry.data[CONF_MBUS_KEY],
@@ -34,7 +35,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
     await coordinator.async_config_entry_first_refresh()
 
-    await hass.config_entries.async_forward_entry_setup(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
     return True
