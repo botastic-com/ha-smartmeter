@@ -1,8 +1,5 @@
 {
     "name": "Botastic Smartmeter",
-    "filename": "botastic_smartmeter.zip",
-    "hide_default_branch": true,
-    "homeassistant": "2023.8.0",
-    "render_readme": true,
-    "zip_release": true
+    "homeassistant": "2024.1.1",
+    "render_readme": true
 }
