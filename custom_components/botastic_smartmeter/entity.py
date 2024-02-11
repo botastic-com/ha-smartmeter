@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
 
 from homeassistant.components.sensor import (
     SensorEntityDescription,
@@ -21,9 +19,15 @@ from .coordinator import BotasticSmartmeterDataUpdateCoordinator
 class BotasticSmartmeterSensorEntityDescription(SensorEntityDescription):
     """Describes the botastic sensor entity."""
 
-    octet: str = None
-    conversion_factor: float = 1.0
-    value: Callable[[float | int], float] | Callable[[datetime], datetime] | None = None
+    def __init__(
+        self,
+        octet: str,
+        conversion_factor: float,
+        **kwargs,
+    ):
+        self.conversion_factor = conversion_factor
+        self.octet = octet
+        super().__init__(**kwargs)
 
     def __post_init__(self):
         """Defaults the translation_key to the sensor key."""

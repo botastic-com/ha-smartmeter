@@ -119,7 +119,6 @@ ENTITY_DESCRIPTIONS = (
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         device_class=SensorDeviceClass.POWER_FACTOR,
-        value=lambda value: value * 100,
     ),
 )
 
@@ -155,6 +154,4 @@ class BotasticSmartmeterSensor(BotasticSmartmeterEntity, SensorEntity):
         """Return the native value of the sensor."""
         values = self.coordinator.data
         value = values.get(self.translation_key)
-        if self.entity_description.value:
-            return self.entity_description.value(value)
         return value

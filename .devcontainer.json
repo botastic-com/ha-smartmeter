@@ -1,6 +1,6 @@
 {
     "name": "ha-smartmeter",
-    "image": "mcr.microsoft.com/devcontainers/python:3.11-bullseye",
+    "image": "mcr.microsoft.com/devcontainers/python:3.12-bullseye",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [
         8123
@@ -20,7 +20,8 @@
                 "ms-python.vscode-pylance",
                 "ms-python.pylint",
                 "ms-python.black-formatter",
-                "fabiospampinato.vscode-todo-plus"
+                "fabiospampinato.vscode-todo-plus",
+                "donjayamanne.githistory"
             ],
             "settings": {
                 "files.eol": "\n",
