@@ -16,12 +16,11 @@ from homeassistant.const import (
     UnitOfPower,
 )
 
-import botastic_smartmeter.coordinator
+from . import coordinator, entity
 from .const import DOMAIN, LOGGER
-from .entity import BotasticSmartmeterEntity, BotasticSmartmeterSensorEntityDescription
 
 ENTITY_DESCRIPTIONS = (
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="voltage_1",
         octet="0100200700FF",
         conversion_factor=0.1,
@@ -30,7 +29,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="current_1",
         octet="01001F0700FF",
         conversion_factor=0.01,
@@ -39,7 +38,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="voltage_2",
         octet="0100340700FF",
         conversion_factor=0.1,
@@ -48,7 +47,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="current_2",
         octet="0100330700FF",
         conversion_factor=0.01,
@@ -57,7 +56,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="voltage_3",
         octet="0100480700FF",
         conversion_factor=0.1,
@@ -66,7 +65,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="current_3",
         octet="0100470700FF",
         conversion_factor=0.01,
@@ -75,7 +74,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.CURRENT,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="power_import",
         octet="0100010700FF",
         icon="mdi:flash",
@@ -84,7 +83,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="power_export",
         octet="0100020700FF",
         conversion_factor=1.0,
@@ -93,7 +92,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="energy_import",
         octet="0100010800FF",
         conversion_factor=0.001,
@@ -102,7 +101,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="energy_export",
         octet="0100020800FF",
         conversion_factor=0.001,
@@ -111,7 +110,7 @@ ENTITY_DESCRIPTIONS = (
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-    BotasticSmartmeterSensorEntityDescription(
+    entity.BotasticSmartmeterSensorEntityDescription(
         key="power_factor",
         octet="01000D0700FF",
         conversion_factor=0.001,
@@ -125,27 +124,27 @@ ENTITY_DESCRIPTIONS = (
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    _coordinator = hass.data[DOMAIN][entry.entry_id]
     entities_to_add: list[SensorEntity] = []
     for entity_description in ENTITY_DESCRIPTIONS:
         entities_to_add.append(
-            BotasticSmartmeterSensor(coordinator, entity_description)
+            BotasticSmartmeterSensor(_coordinator, entity_description)
         )
     async_add_entities(entities_to_add, False)
 
 
-class BotasticSmartmeterSensor(BotasticSmartmeterEntity, SensorEntity):
+class BotasticSmartmeterSensor(entity.BotasticSmartmeterEntity, SensorEntity):
     """botastic_smartmeter sensor class."""
 
     _attr_should_poll = False
 
     def __init__(
         self,
-        coordinator: botastic_smartmeter.BotasticSmartmeterDataUpdateCoordinator,
-        entity_description: BotasticSmartmeterSensorEntityDescription,
+        _coordinator: coordinator.BotasticSmartmeterDataUpdateCoordinator,
+        entity_description: entity.BotasticSmartmeterSensorEntityDescription,
     ) -> None:
         """Initialize the sensor class."""
-        super().__init__(coordinator, entity_description)
+        super().__init__(_coordinator, entity_description)
         self.entity_description = entity_description
         LOGGER.info("Added entity %s", self.entity_description.key)
 

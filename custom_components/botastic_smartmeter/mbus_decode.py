@@ -7,7 +7,7 @@ from binascii import unhexlify
 from gurux_dlms.GXDLMSTranslator import GXDLMSTranslator
 from Cryptodome.Cipher import AES
 
-import botastic_smartmeter.sensor
+from . import sensor
 from .const import LOGGER
 
 
@@ -21,7 +21,7 @@ class MBusDecode:
         # Values in XML File
         self.octet_string_values = {}
         self.conversion_factor = {}
-        for entity in botastic_smartmeter.sensor.ENTITY_DESCRIPTIONS:
+        for entity in sensor.ENTITY_DESCRIPTIONS:
             self.octet_string_values[entity.octet] = entity.key
             self.conversion_factor[entity.key] = entity.conversion_factor
 
@@ -66,24 +66,23 @@ class MBusDecode:
         if print_out:
             now = datetime.now()
             LOGGER.info("\nSmartmeter Output: %s", now.strftime("%d.%m.%Y %H:%M:%S"))
-            LOGGER.info("OBIS Code\tDescription\tValue")
-            for entity in botastic_smartmeter.sensor.ENTITY_DESCRIPTIONS:
+            msg_t = "OBIS Code\t" + f"{"Description":^23}" + "\tValue"
+            LOGGER.info(msg_t)
+            for entity in sensor.ENTITY_DESCRIPTIONS:
                 msg = (
                     entity.octet
                     + "\t"
-                    + entity.key
-                    + " ("
-                    + entity.native_unit_of_measurement
-                    + "):\t"
+                    + f"{entity.key + " (" + entity.native_unit_of_measurement + "):":>23}"
+                    + "\t"
                 )
                 LOGGER.info(
-                    "%s %s",
+                    "%s%s",
                     msg,
                     str(round(data_received[entity.key], 2)),
                 )
-
+            msg_p = "------------\t" + f"{"Power overall (W):":>23}" + "\t%s"
             LOGGER.info(
-                "-------------\tPower overall [w]:\t\t %s",
+                msg_p,
                 str(data_received["power_import"] - data_received["power_export"]),
             )
         return data_received

@@ -10,11 +10,11 @@ import serial_asyncio
 
 import aiohttp
 import async_timeout
-import botastic_smartmeter.mbus_decode
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 
+from . import mbus_decode
 from .const import LOGGER
 
 DEFAULT_BAUDRATE = 115200
@@ -58,7 +58,7 @@ class BotasticSmartmeterApi:
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, self.stop_serial_read)
         self._reader = None
         self.data_received = None
-        self.mbus_decode = botastic_smartmeter.mbus_decode.MBusDecode(self._mbus_key)
+        self.mbus_decode = mbus_decode.MBusDecode(self._mbus_key)
         self.device_info = {
             "serial_number": "123456",
             "sw_version": "1.0",
@@ -96,10 +96,9 @@ class BotasticSmartmeterApi:
         """Get information from the API."""
         try:
             async with async_timeout.timeout(10):
-                if self.data_received == None:
+                if self.data_received is None:
                     return self.mbus_decode.message_decode(SIM_DATA, False)
-                else:
-                    return self.data_received
+                return self.data_received
         except asyncio.TimeoutError as exception:
             raise BotasticSmartmeterApiCommunicationError(
                 "Timeout error fetching information",

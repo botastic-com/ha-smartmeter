@@ -1,0 +1,63 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Dieses Gerät ist bereits konfiguriert"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "serial_port": "Wähle ein USB Gerät",
+                    "mbus_key": "Geben Sie den MBUS Dekodierungsschlüssel ein"
+                },
+                "title": "Serielles Gerät"
+            },
+            "setup_serial_manual": {
+                "data": {
+                    "serial_port": "Pfad des USB Gerätes"
+                },
+                "title": "Pfad des seriellen Gerätes"
+            }
+        },
+        "error": {
+            "connection": "Verbindungsaufbau zu Server nich möglich",
+            "unknown": "Unbekannter Fehler"
+        }
+    },
+    "entity": {
+        "sensor": {
+            "voltage_1": {
+                "name": "Spannung L1"
+            },
+            "current_1": {
+                "name": "Strom L1"
+            },
+            "voltage_2": {
+                "name": "Spannung L2"
+            },
+            "current_2": {
+                "name": "Strom L2"
+            },
+            "voltage_3": {
+                "name": "Spannung L3"
+            },
+            "current_3": {
+                "name": "Strom L3"
+            },
+            "power_import": {
+                "name": "Leistung Import"
+            },
+            "power_export": {
+                "name": "Leistung Export"
+            },
+            "energy_import": {
+                "name": "Energie Import"
+            },
+            "energy_export": {
+                "name": "Energie Export"
+            },
+            "power_factor": {
+                "name": "Leistung Faktor"
+            }
+        }
+    }
+}
