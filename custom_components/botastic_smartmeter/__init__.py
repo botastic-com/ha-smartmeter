@@ -30,6 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass=hass,
         _api=_api_,
     )
+    _api_.coordinator = _coordinator
     hass.data[DOMAIN][entry.entry_id] = _coordinator
 
     # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities

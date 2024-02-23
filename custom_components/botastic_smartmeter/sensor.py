@@ -146,11 +146,14 @@ class BotasticSmartmeterSensor(entity.BotasticSmartmeterEntity, SensorEntity):
         """Initialize the sensor class."""
         super().__init__(_coordinator, entity_description)
         self.entity_description = entity_description
-        LOGGER.info("Added entity %s", self.entity_description.key)
+        LOGGER.debug("Added entity %s", self.entity_description.key)
 
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
         values = self.coordinator.data
-        value = values.get(self.translation_key)
+        if values is None:
+            value = "0"
+        else:
+            value = values.get(self.translation_key)
         return value

@@ -3,13 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import socket
-import time
 from serial import SerialException
 import serial_asyncio
-
-import aiohttp
-import async_timeout
+from async_timeout import timeout
 
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
@@ -48,15 +44,9 @@ class BotasticSmartmeterApi:
         self._hass = hass
         self._serial_port = serial_port
         self._mbus_key = mbus_key
-        self._baudrate = DEFAULT_BAUDRATE
-        self._bytesize = DEFAULT_BYTESIZE
-        self._parity = DEFAULT_PARITY
-        self._stopbits = DEFAULT_STOPBITS
-        self._xonxoff = DEFAULT_XONXOFF
-        self._rtscts = DEFAULT_RTSCTS
-        self._dsrdtr = DEFAULT_DSRDTR
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, self.stop_serial_read)
         self._reader = None
+        self.coordinator = None
         self.data_received = None
         self.mbus_decode = mbus_decode.MBusDecode(self._mbus_key)
         self.device_info = {
@@ -69,18 +59,17 @@ class BotasticSmartmeterApi:
             self.serial_read(self._serial_port)
         )
 
-    async def async_open_port(self, **kwargs) -> any:
+    async def async_open_port(self) -> any:
         """Open port from the API."""
         return await serial_asyncio.open_serial_connection(
             url=self._serial_port,
-            baudrate=self._baudrate,
-            bytesize=self._bytesize,
-            parity=self._parity,
-            stopbits=self._stopbits,
-            xonxoff=self._xonxoff,
-            rtscts=self._rtscts,
-            dsrdtr=self._dsrdtr,
-            **kwargs,
+            baudrate=DEFAULT_BAUDRATE,
+            bytesize=DEFAULT_BYTESIZE,
+            parity=DEFAULT_PARITY,
+            stopbits=DEFAULT_STOPBITS,
+            xonxoff=DEFAULT_XONXOFF,
+            rtscts=DEFAULT_RTSCTS,
+            dsrdtr=DEFAULT_DSRDTR,
         )
 
     async def async_close_port(self) -> None:
@@ -90,27 +79,9 @@ class BotasticSmartmeterApi:
 
     async def async_get_data(self) -> any:
         """Get data from the API."""
-        return await self._api_wrapper()
-
-    async def _api_wrapper(self) -> any:
-        """Get information from the API."""
-        try:
-            async with async_timeout.timeout(10):
-                if self.data_received is None:
-                    return self.mbus_decode.message_decode(SIM_DATA, False)
-                return self.data_received
-        except asyncio.TimeoutError as exception:
-            raise BotasticSmartmeterApiCommunicationError(
-                "Timeout error fetching information",
-            ) from exception
-        except (aiohttp.ClientError, socket.gaierror) as exception:
-            raise BotasticSmartmeterApiCommunicationError(
-                "Error fetching information",
-            ) from exception
-        except Exception as exception:  # pylint: disable=broad-except
-            raise BotasticSmartmeterApiError(
-                "Something really wrong happened!"
-            ) from exception
+        if self.data_received is None:
+            return self.mbus_decode.message_decode(SIM_DATA, False)
+        return self.data_received
 
     @callback
     def stop_serial_read(self, event):
@@ -120,16 +91,12 @@ class BotasticSmartmeterApi:
             LOGGER.info("Try to stop serial_loop_task...")
             self._serial_loop_task.cancel()
 
-    async def serial_read(
-        self,
-        device,
-        **kwargs,
-    ):
+    async def serial_read(self, device):
         """Read the data from the port."""
         logged_error = False
         while True:
             try:
-                (self._reader, _) = await self.async_open_port(**kwargs)
+                self._reader, _ = await self.async_open_port()
 
             except SerialException as exc:
                 if not logged_error:
@@ -140,6 +107,9 @@ class BotasticSmartmeterApi:
                     )
                     logged_error = True
                 await self._handle_error()
+            except BaseException as err:  # pylint: disable=broad-except
+                LOGGER.exception("Error Open: %s", format(err))
+                await self._handle_error()
             else:
                 LOGGER.info("Serial device %s connected", device)
                 data_start = False
@@ -147,25 +117,49 @@ class BotasticSmartmeterApi:
                 data_nr_target = (282 + 6) * 2
                 message_buffer = ""
 
+                # energy_import_test = 21060.1
+
                 while True:
-                    chars_to_read = self._reader.in_waiting
-                    if chars_to_read > 0:
-                        try:
-                            in_hex = self._reader.read(chars_to_read).decode("ascii")
-                        except SerialException as exc:
-                            LOGGER.exception(
-                                "Error while reading serial device %s: %s", device, exc
-                            )
-                            await self._handle_error()
-                            break
-                        else:
+
+                    # Testing push function:
+                    # self.data_received = self.mbus_decode.message_decode(
+                    #     SIM_DATA, False
+                    # )
+                    # if self.data_received is not None:
+                    #     energy_import_test = energy_import_test + 0.1
+                    #     self.data_received["energy_import"] = str(energy_import_test)
+                    #     self.coordinator.async_set_updated_data(self.data_received)
+                    # await asyncio.sleep(2.0)
+                    # continue
+
+                    try:
+                        async with timeout(2.5):
+                            res = await self._reader.read(data_nr_target)
+                            in_hex = res.decode("utf-8")
+                    except asyncio.TimeoutError:
+                        await asyncio.sleep(0.1)
+                    except asyncio.exceptions.CancelledError:
+                        LOGGER.exception("Cancelled serial read by user")
+                        return
+                    except SerialException as exc:
+                        LOGGER.exception(
+                            "Error while reading serial device %s: %s", device, exc
+                        )
+                        await self._handle_error()
+                        break
+                    except BaseException as err:  # pylint: disable=broad-except
+                        LOGGER.exception("Error Read: %s", format(err))
+                        await self._handle_error()
+                    else:
+                        # LOGGER.debug("read result: %s", in_hex)
+                        if in_hex is not None and len(in_hex) > 0:
                             if not data_start:
                                 if in_hex[0:4] == "68FA":
                                     data_start = True
                                     data_nr = 0
                                     message_buffer = ""
                             if data_start:
-                                data_nr += chars_to_read
+                                data_nr += len(in_hex)
                                 message_buffer += in_hex
                                 if data_nr >= data_nr_target:
                                     data_start = False
@@ -175,14 +169,12 @@ class BotasticSmartmeterApi:
                                             message_buffer, False
                                         )
                                     )
-                                    if self.data_received:
-                                        self._hass.coordinator.async_set_updated_data(
+                                    if self.data_received is not None:
+                                        self.coordinator.async_set_updated_data(
                                             self.data_received
                                         )
-                                    else:
-                                        LOGGER.exception("Error in data decryption")
-                    else:
-                        time.sleep(0.1)
+                        else:
+                            await asyncio.sleep(0.1)
 
     async def _handle_error(self):
         """Handle error for serial connection."""

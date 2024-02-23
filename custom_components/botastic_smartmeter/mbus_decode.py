@@ -36,6 +36,7 @@ class MBusDecode:
     def apdu_decode(self, apdu, print_out=False):
         """decode the apdu"""
         if apdu[0:4] != "0f80":
+            LOGGER.exception("Error apdu header: %s", apdu[0:4])
             return
         try:
             xml = self.tr.pduToXml(
@@ -57,10 +58,9 @@ class MBusDecode:
                                 items[i + 1].attrib["Value"], 16
                             )
 
-        # LOGGER.info(data_received)
         except BaseException as err:  # pylint: disable=broad-except
             # LOGGER.info("APU: ", format(apdu))
-            LOGGER.exception("Error: %s", format(err))
+            LOGGER.warning("adpu decode failed: %s", format(err))
             return
 
         if print_out:
@@ -101,5 +101,7 @@ class MBusDecode:
             LOGGER.info("frame_len: %s", str(frame_len))
             LOGGER.info("system_title: %s", system_title)
             LOGGER.info("frame_counter: %s", frame_counter)
-            LOGGER.info(apdu)
+            LOGGER.info("msg: %s", msg)
+            LOGGER.info("key: %s", self._mbus_key)
+            LOGGER.info("apdu: %s", apdu)
         return self.apdu_decode(apdu, print_out)
